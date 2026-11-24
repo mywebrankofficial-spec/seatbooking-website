@@ -8,7 +8,7 @@
  *   4. Checkout sheet
  */
 import dynamic from 'next/dynamic';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Cinema, Seat, Showtime } from '@/types/cinema';
 import { CROSSFADE_END, useBooking } from '@/store/booking';
 import { generateSeats } from '@/data/cinema';
@@ -27,17 +27,21 @@ interface Props {
 }
 
 export function BookingExperience({ cinema, showtimes, showtimeId, seats }: Props) {
+  // Hydrate the store synchronously before any child subscribes, so the very first
+  // paint (and SSR) already has seats. Keeps the selection when returning to the same show.
+  const hydrated = useRef(false);
+  if (!hydrated.current) {
+    hydrated.current = true;
+    const st = useBooking.getState();
+    if (st.showtimeId !== showtimeId || st.seats.length === 0) {
+      useBooking.setState({ showtimeId, seats, selectedSeatId: null, cameraSeatId: null });
+    }
+    useBooking.setState({ mode: 'map', progress: 0, checkoutOpen: false, sheetExpanded: false });
+  }
+
   const progress = useBooking((s) => s.progress);
   const mode = useBooking((s) => s.mode);
   const [load3D, setLoad3D] = useState(false);
-
-  // Hydrate the store once with server data (keeps the selection if we come back to the same show).
-  useEffect(() => {
-    const st = useBooking.getState();
-    if (st.showtimeId !== showtimeId || st.seats.length === 0) st.setShowtime(showtimeId, seats);
-    st.setMode('map');
-    st.setProgress(0);
-  }, [showtimeId, seats]);
 
   // Reduced motion preference.
   useEffect(() => {
