@@ -35,6 +35,19 @@ export function StadiumExperience({ eventId }: { eventId: string }) {
     });
   }
 
+  // Test handle, only when the URL has ?e2e (Playwright drives the state machine with it).
+  useEffect(() => {
+    if (!new URLSearchParams(window.location.search).has('e2e')) return;
+    let cancelled = false;
+    void Promise.all([import('@/lib/stadium-nav'), import('@/lib/stadium-geometry')]).then(([nav, geo]) => {
+      if (cancelled) return;
+      (window as unknown as { __arenaTest?: unknown }).__arenaTest = { nav, geo, useStadium };
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   useEffect(() => {
     const rm = window.matchMedia('(prefers-reduced-motion: reduce)');
     const touch = window.matchMedia('(hover: none)');

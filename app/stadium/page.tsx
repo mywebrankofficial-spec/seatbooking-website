@@ -1,12 +1,15 @@
-/** STUB — owned by the Stadium Landing agent, who replaces this file. */
-import Link from 'next/link';
+import type { Metadata, Viewport } from 'next';
+import { StadiumLandingPage } from '@/components/stadium-landing/StadiumLandingPage';
+
+export const metadata: Metadata = {
+  title: 'Arena · Every seat, before you buy it',
+  description: 'Fly into a real 3D stadium, see the pitch from any seat or skybox, and book it.',
+};
+
+export const viewport: Viewport = {
+  themeColor: '#eef4f9',
+};
 
 export default function StadiumLanding() {
-  return (
-    <main className="flex min-h-dvh items-center justify-center bg-page">
-      <Link href="/stadium/city-derby" className="rounded-full bg-[#F26A21] px-6 py-3 font-semibold text-white">
-        Find your seat
-      </Link>
-    </main>
-  );
+  return <StadiumLandingPage />;
 }

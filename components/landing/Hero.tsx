@@ -2,6 +2,7 @@
 import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import Link from 'next/link';
+import { VenueSwitcher } from '@/components/stadium-landing/VenueSwitcher';
 import { ScreenArc } from './ScreenArc';
 import { BOOK_HREF } from './links';
 
@@ -16,6 +17,7 @@ export function Hero() {
     <section className="relative flex min-h-[100svh] flex-col overflow-hidden">
       <header className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between px-6 pt-6 md:px-10 md:pt-8">
         <span className="text-[15px] font-semibold tracking-tight">SeatView</span>
+        <VenueSwitcher active="cinema" className="absolute left-1/2 -translate-x-1/2" />
         <Link
           href={BOOK_HREF}
           className="rounded-full px-4 py-2 text-[13px] font-medium text-fg-2 transition-colors hover:text-fg focus-visible:outline-2 focus-visible:outline-accent"

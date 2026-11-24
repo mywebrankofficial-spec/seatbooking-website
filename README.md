@@ -35,3 +35,22 @@ Optional real trailer on the cinema screen: put a clip in `public/media/` and se
 - The screen is 11.8 m wide (not 14 m / 18 m) so the reference stats hold: B4 = 6.3 m / 86° / 2.2 m left, F8 = 9.8 m / 62° / 0.3 m right, I12 = 13.3 m / 48° / 3.3 m right.
 - No WebGL: the seat view falls back to pre-rendered images per zone in `public/media/fallback/` (rendered from the real 3D scene).
 - Interactions in Screen B: drag the sheet down (or scroll up) to scrub back to the map; drag it up for details; swipe left/right for neighbouring seats, up/down for rows; arrow keys and Escape work too.
+
+## Arena: 3D stadium ticketing
+
+Open http://localhost:3000/stadium (landing with scroll flythrough) or go straight to the booking at http://localhost:3000/stadium/city-derby. The home page has a Cinema | Stadium switcher.
+
+Flow: aerial (hover a stand) → stand (hover a block) → block (hover a seat, with a live-rendered view thumbnail) → ticket (real rendered "Your view", Upgrade to VIP) → skyboxes → inside a box → pick a chair → pitch view → Confirm ticket → checkout → ticket with barcode + QR. Esc / back button / breadcrumbs fly back; mouse wheel zooms and steps levels; arrow keys + Enter work at every level; on touch, first tap previews and second tap selects.
+
+| Folder | What |
+| --- | --- |
+| `lib/venue-engine/` | Shared by both venues: money (EUR/AED), camera shot director (`flyTo`), screen anchors for floating cards |
+| `lib/stadium-geometry.ts` | Single source of truth: bowl, 8 stands, 3 tiers, 112 blocks, 42,796 seats, 28 skyboxes, camera shots |
+| `data/stadium/event.ts` | City Derby event, prices, seeded availability (Block 234 sold out, Block 331 73 left, Skybox 11 sold out…) |
+| `store/stadium.ts`, `lib/stadium-nav.ts`, `lib/stadium-shots.ts` | State machine, camera flights, picking, keyboard/wheel/touch |
+| `components/stadium/` | 3D: structure (bowl, seats with LOD, skyboxes, roof, pitch), environment (park, trees, roads, sun, shadows, effects), seat-view renderer |
+| `components/venue-ui/` | Hover cards, ticket + VIP ticket, view card, breadcrumbs |
+| `components/booking/stadium/` | Stadium checkout and confirmation ticket |
+| `components/stadium-landing/` | `/stadium` landing and the venue switcher |
+
+E2E handle: `/stadium/city-derby?e2e` exposes `window.__arenaTest` for Playwright.
