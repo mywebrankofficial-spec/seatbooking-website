@@ -1,8 +1,8 @@
-const priceFmt = new Intl.NumberFormat('en-IE', { style: 'currency', currency: 'EUR' });
+import { formatMoney } from '@/lib/venue-engine/money';
 
-/** 12.5 -> "€12.50" */
+/** 12.5 -> "€12.50" (cinema prices go through the shared venue engine) */
 export function formatPrice(value: number): string {
-  return priceFmt.format(value);
+  return formatMoney(value, 'EUR');
 }
 
 /** 6.33 -> "6.3 m" (one decimal for metres) */

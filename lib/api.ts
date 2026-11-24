@@ -63,3 +63,39 @@ export async function confirmBooking(input: {
     createdAt: new Date().toISOString(),
   };
 }
+
+/* ------------------------------------------------------------------ */
+/* Stadium                                                              */
+/* ------------------------------------------------------------------ */
+
+import { STADIUM_EVENT, generateStadiumAvailability, type StadiumEvent, type StadiumAvailability } from '@/data/stadium/event';
+import type { StadiumBooking } from '@/store/stadium';
+
+export async function getStadiumEvent(eventId: string): Promise<StadiumEvent | null> {
+  return eventId === STADIUM_EVENT.id ? STADIUM_EVENT : null;
+}
+
+/** Seeded availability (client-side safe: deterministic per event). */
+export function getStadiumAvailability(eventId: string): StadiumAvailability {
+  return generateStadiumAvailability(eventId);
+}
+
+/** Holds a stadium seat or skybox chair for 10 minutes. */
+export async function holdStadiumSeat(eventId: string, key: string): Promise<SeatHold> {
+  await wait(250);
+  return {
+    holdId: `H-${Date.now().toString(36).toUpperCase()}`,
+    seatId: key,
+    showtimeId: eventId,
+    expiresAt: new Date(Date.now() + 10 * 60_000).toISOString(),
+  };
+}
+
+export async function confirmStadiumBooking(
+  input: Omit<StadiumBooking, 'ref' | 'createdAt'> & { holdId: string },
+): Promise<StadiumBooking> {
+  await wait(900);
+  const { holdId, ...rest } = input;
+  void holdId;
+  return { ...rest, ref: `ARN-${Math.random().toString(36).slice(2, 8).toUpperCase()}`, createdAt: new Date().toISOString() };
+}
