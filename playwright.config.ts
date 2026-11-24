@@ -36,6 +36,7 @@ export default defineConfig({
   ],
   webServer: {
     command: `npx next start -p ${PORT}`,
+    env: { NEXT_DIST_DIR: process.env.NEXT_DIST_DIR ?? '.next' },
     url: `http://localhost:${PORT}`,
     reuseExistingServer: true,
     timeout: 120_000,

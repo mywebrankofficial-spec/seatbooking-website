@@ -15,9 +15,9 @@ const seat = (page: Page, row: string, n: number) => page.locator(`button[aria-l
 const continueBtn = (page: Page) => page.getByRole('button', { name: /^Continue$/ });
 
 async function openSeat(page: Page, row: string, n: number) {
+  // Picking a seat flies straight into its view (no Continue needed).
   await seat(page, row, n).click();
   await expect(page.getByText(`Row ${row} · Seat ${n}`)).toBeVisible();
-  await continueBtn(page).click();
   await expect(page.getByText(`View from ${row}${n}`)).toBeVisible({ timeout: 15_000 });
   await page.waitForTimeout(1600); // let the sheet spring + number count-ups settle
 }
@@ -27,6 +27,9 @@ async function backToMap(page: Page, row: string, n: number) {
   await expect(continueBtn(page)).toBeEnabled({ timeout: 15_000 });
   await expect(seat(page, row, n)).toHaveAttribute('aria-pressed', 'true');
   await page.waitForTimeout(400);
+  // Coming back must NOT fly in again on its own (selection didn't change).
+  await page.waitForTimeout(800);
+  await expect(page.getByText(`View from ${row}${n}`)).toHaveCount(0);
 }
 
 test('reference loop: B4 → F8 → I12 → book', async ({ page }) => {
@@ -42,12 +45,11 @@ test('reference loop: B4 → F8 → I12 → book', async ({ page }) => {
   // ---- B4: UP CLOSE
   await seat(page, 'B', 4).click();
   await expect(page.getByText('Row B · Seat 4')).toBeVisible();
-  await expect(continueBtn(page)).toBeEnabled();
-  await page.waitForTimeout(700);
+  await page.waitForTimeout(250);
   await page.screenshot({ path: `${SHOTS}/02-map-b4-selected.png` });
 
-  await continueBtn(page).click();
-  await page.waitForTimeout(450);
+  // No Continue tap: the flight starts by itself ~0.55 s after picking the seat.
+  await page.waitForTimeout(650);
   await page.screenshot({ path: `${SHOTS}/03a-overhead-3d.png` });
   await page.waitForTimeout(450);
   await page.screenshot({ path: `${SHOTS}/03b-mid-flight.png` });

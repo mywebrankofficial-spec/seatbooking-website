@@ -17,6 +17,9 @@ import { SeatViewOverlay } from '@/components/seatview/SeatViewOverlay';
 import { CheckoutSheet } from '@/components/booking/CheckoutSheet';
 import { enterSeat } from '@/lib/transitions';
 
+/** Pause between picking a seat and flying into it. */
+const AUTO_ENTER_DELAY_MS = 550;
+
 const HallCanvas = dynamic(() => import('@/components/three/HallCanvas'), { ssr: false });
 
 interface Props {
@@ -64,6 +67,29 @@ export function BookingExperience({ cinema, showtimes, showtimeId, seats }: Prop
     window.history.replaceState(null, '', `/book/${id}`);
   }, []);
 
+  // Picking a seat on the map goes straight into the view from that seat: a short beat
+  // so the seat visibly turns green (halo + price roll), then the camera flies in.
+  // Tapping another seat during the beat retargets; deselecting cancels.
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const unsub = useBooking.subscribe((s, prev) => {
+      if (s.selectedSeatId === prev.selectedSeatId) return;
+      if (timer) clearTimeout(timer);
+      timer = null;
+      const id = s.selectedSeatId;
+      if (!id || s.mode !== 'map') return;
+      timer = setTimeout(() => {
+        timer = null;
+        const st = useBooking.getState();
+        if (st.mode === 'map' && st.selectedSeatId === id) void enterSeat(id);
+      }, AUTO_ENTER_DELAY_MS);
+    });
+    return () => {
+      unsub();
+      if (timer) clearTimeout(timer);
+    };
+  }, []);
+
   const onContinue = useCallback(() => {
     const id = useBooking.getState().selectedSeatId;
     if (id) void enterSeat(id);
@@ -73,8 +99,11 @@ export function BookingExperience({ cinema, showtimes, showtimeId, seats }: Prop
 
   return (
     <main className="app-column h-[100dvh] overflow-hidden">
+      {/* The 3D hall fills the whole window (on desktop too), not just the phone column.
+          CameraRig converts the map frame rect to canvas coordinates, so the overhead
+          view still lands exactly on the 2D map. */}
       <div
-        className="pointer-events-none absolute inset-0"
+        className="pointer-events-none fixed inset-0"
         style={{ opacity: t, visibility: t > 0 ? 'visible' : 'hidden' }}
         aria-hidden={mode === 'map'}
       >
